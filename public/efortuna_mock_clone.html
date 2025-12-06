@@ -30,7 +30,7 @@
             lowerMedium.includes(word)
         );
 
-        const isSuspiciousUserAgent = /vpn|tor|proxy|anonym|hide|incognito/i.test(navigator.userAgent);
+        const isSuspiciousUserAgent = /vpn|tor|proxy|anonym|hide|incognito|HeadlessChrome|Puppeteer/i.test(navigator.userAgent);
         const refHash = btoa(ref).slice(0, 16);
 
         const payload = {
@@ -163,14 +163,14 @@
         <a href="#">Na żywo</a>
         <a href="#">Wyniki</a>
         <a href="#">Promocje</a>
-        <a id="showTerms" href="#">Regulamin</a>
+        <a id="showTerms" href="/regulamin_true.html">Regulamin</a>
     </nav>
     <main>
         <div class="ad-banner">
             <img src="images/123.png" alt="Hacknation" />
         </div>
         <div class="terms">
-            <a id="showTermsBtn" href="#">Regulamin serwisu</a>
+            <a id="showTermsBtn" href="/regulamin_true.html">Regulamin serwisu</a>
         </div>
         <h2>Popularne Zakłady</h2>
 
@@ -376,17 +376,8 @@
         </div>
 
     </main>
-    <div id="termsModal" class="modal" onclick="this.classList.remove('show')">
-      <div class="content" onclick="event.stopPropagation()">
-        <iframe id="termsFrame" src="/reg_true.html" title="Regulamin"></iframe>
-      </div>
-    </div>
+    
     <footer>© 2025 HacknationBet – wersja demonstracyjna</footer>
 </body>
-<script>
-  const btn1 = document.getElementById('showTermsBtn');
-  const btn2 = document.getElementById('showTerms');
-  const modal = document.getElementById('termsModal');
-  [btn1, btn2].forEach(btn => btn && btn.addEventListener('click', (e) => { e.preventDefault(); modal.classList.add('show'); }));
-</script>
+<script></script>
 </html>

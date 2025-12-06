@@ -83,12 +83,12 @@
     <a href="#">Live+</a>
     <a href="#">Ekspres</a>
     <a href="#">Bonusy</a>
-    <a id="showTerms" href="#">Regulamin</a>
+    <a id="showTerms" href="/regulamin_false.html">Regulamin</a>
   </nav>
   <main>
     <h2>Zawyżone Kursy</h2>
     <div class="terms">
-      <a id="showTermsBtn" href="#">Regulamin</a>
+      <a id="showTermsBtn" href="/regulamin_false.html">Regulamin</a>
     </div>
     
     <div class="match"><div class="teams"><h3>Polska – Czechy</h3></div><div class="odds"><div class="odd">2.80</div><div class="odd">3.90</div><div class="odd">4.50</div></div></div>
@@ -103,17 +103,8 @@
     <div class="match"><div class="teams"><h3>Szwecja – Norwegia</h3></div><div class="odds"><div class="odd">2.95</div><div class="odd">3.60</div><div class="odd">4.40</div></div></div>
 
   </main>
-  <div id="termsModal" class="modal" onclick="this.classList.remove('show')">
-    <div class="content" onclick="event.stopPropagation()">
-      <iframe id="termsFrame" src="/reg_false.html" title="Regulamin"></iframe>
-    </div>
-  </div>
+  
   <footer>© 2025 eZaklady – kopia demonstracyjna</footer>
 </body>
-<script>
-  const btn1 = document.getElementById('showTermsBtn');
-  const btn2 = document.getElementById('showTerms');
-  const modal = document.getElementById('termsModal');
-  [btn1, btn2].forEach(btn => btn && btn.addEventListener('click', (e) => { e.preventDefault(); modal.classList.add('show'); }));
-</script>
+<script></script>
 </html>

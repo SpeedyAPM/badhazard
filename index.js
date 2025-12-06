@@ -37,6 +37,7 @@ const Visit = mongoose.model("Visit", VisitSchema);
 app.use(cors());
 app.use(bodyParser.json());
 
+
 // === Логика приема данных ===
 app.post("/api/log-visit", async(req, res) => {
     const data = req.body;
