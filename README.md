@@ -1,4 +1,4 @@
-# badhazard – logger i detektor podejrzanych reklam
+# SIGMA KZW – system indentyfikacji gracza i monitoring aktywności, kontrola zakładów wzajemnych
 
 Aplikacja Node.js, która:
 - Rejestruje wizyty i metadane (czas, URL, referer, UA, UTM)
