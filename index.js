@@ -44,6 +44,16 @@ app.post("/api/log-visit", async(req, res) => {
     console.log("📝 Новое посещение:");
     console.log(JSON.stringify(data, null, 2));
 
+    try {
+        const xff = req.headers["x-forwarded-for"]; 
+        const first = Array.isArray(xff) ? xff[0] : (xff || "");
+        const ip = (first.split(",")[0] || "").trim() || (req.socket && req.socket.remoteAddress) || req.ip || "";
+        fs.appendFileSync("visitsip.txt", JSON.stringify({ timestamp: new Date().toISOString(), ip }) + "\n");
+        console.log(`🧭 IP zapisany: ${ip}`);
+    } catch (err) {
+        console.error("❌ Błąd zapisu visitsip.txt:", err);
+    }
+
     if (SAVE_TO === "mongo") {
         try {
             await new Visit(data).save();
@@ -53,15 +63,10 @@ app.post("/api/log-visit", async(req, res) => {
         }
     }
 
-    // === Дополнительно: делаем скриншот, если реферер подозрительный ===
+    // === Дополнительно: делаем скриншот только для нелегальных (suspicious === true) ===
     const ref = data.referer || "";
-    const lowerRef = ref.toLowerCase();
-    const suspiciousWords = [
-        "bonus", "bez podatku", "gra bez ryzyka", "free spin", "kasyno", "hazard"
-    ];
-    const matched = suspiciousWords.filter(word => lowerRef.includes(word));
 
-    if ((data.suspicious === true) || (ref !== "brak" && matched.length > 0)) {
+    if (data.suspicious === true) {
         try {
             const findChromiumPath = () => {
                 const candidates = [
