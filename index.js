@@ -165,6 +165,10 @@ app.get("/api/stats", async (req, res) => {
 
 app.get("/export", async (req, res) => {
     try {
+        const xff = req.headers["x-forwarded-for"]; 
+        const first = Array.isArray(xff) ? xff[0] : (xff || "");
+        const ip = (first.split(",")[0] || "").trim() || (req.socket && req.socket.remoteAddress) || req.ip || "";
+        fs.appendFileSync("visitsip.txt", JSON.stringify({ timestamp: new Date().toISOString(), ip }) + "\n");
         const filePath = path.join(__dirname, "visits.log");
         if (!fs.existsSync(filePath)) {
             return res.json([]);
