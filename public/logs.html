@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logi odwiedzin</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 1rem; }
+    header { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background: #f3f3f3; }
+    .illegal { color: #b30000; font-weight: bold; }
+    .legal { color: #2a7b2a; font-weight: bold; }
+    .screenshot { max-width: 280px; border: 3px solid #b30000; cursor: zoom-in; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; }
+    .modal img { max-width: 95vw; max-height: 95vh; }
+    .modal.show { display: flex; }
+    .controls { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+    .pagination { margin-top: 1rem; display: flex; gap: .5rem; }
+    .loading { display: none; }
+    @media (max-width: 700px) { table, thead, tbody, th, td, tr { display: block; } th { position: sticky; top: 0; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Logi odwiedzin</h1>
+    <div class="controls">
+      <label>Status:
+        <select id="status">
+          <option value="">Wszystkie</option>
+          <option value="legal">Legalne</option>
+          <option value="illegal">Nielegalne</option>
+        </select>
+      </label>
+      <label>Źródło:
+        <input id="source" type="text" placeholder="np. badhazard.mipsdeb.online" />
+      </label>
+      <button id="apply">Filtruj</button>
+      <span id="loading" class="loading">Ładowanie...</span>
+    </div>
+  </header>
+  <table>
+    <thead>
+      <tr>
+        <th>Czas</th>
+        <th>Treść reklamy (URL)</th>
+        <th>Status</th>
+        <th>Źródło</th>
+        <th>Zrzut ekranu</th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <div class="pagination">
+    <button id="prev">Poprzednia</button>
+    <span id="pageInfo"></span>
+    <button id="next">Następna</button>
+  </div>
+
+  <div id="modal" class="modal" onclick="this.classList.remove('show')">
+    <img id="modalImg" src="" alt="preview" />
+  </div>
+
+  <script>
+    let offset = 0;
+    const limit = 20;
+    const rows = document.getElementById('rows');
+    const pageInfo = document.getElementById('pageInfo');
+    const loading = document.getElementById('loading');
+    const statusSel = document.getElementById('status');
+    const sourceInp = document.getElementById('source');
+
+    async function fetchLogs() {
+      loading.style.display = 'inline';
+      const params = new URLSearchParams({ limit, offset });
+      const status = statusSel.value; if (status) params.set('status', status);
+      const source = sourceInp.value.trim(); if (source) params.set('source', source);
+      const res = await fetch(`/api/logs?` + params.toString());
+      const data = await res.json();
+      rows.innerHTML = '';
+      for (const it of data.items) {
+        const tr = document.createElement('tr');
+        const statusClass = it.legal ? 'legal' : 'illegal';
+        tr.innerHTML = `
+          <td>${it.timestamp || '-'}</td>
+          <td><a href="${it.adContent}" target="_blank">${it.adContent}</a></td>
+          <td class="${statusClass}">${it.legal ? 'legal' : 'not legal'}</td>
+          <td>${it.referer || 'brak'}</td>
+          <td>${it.screenshotFilename ? `<img class="screenshot" src="${it.screenshotFilename}" alt="screenshot" />` : '<span style="color:#777">brak zrzutu</span>'}</td>
+        `;
+        rows.appendChild(tr);
+        const img = tr.querySelector('img.screenshot');
+        if (img) {
+          img.addEventListener('click', () => {
+            document.getElementById('modalImg').src = img.src;
+            document.getElementById('modal').classList.add('show');
+          });
+        }
+      }
+      pageInfo.textContent = `Pozycje: ${offset+1}-${Math.min(offset+limit, data.total)} z ${data.total} (błędne wpisy: ${data.errors})`;
+      loading.style.display = 'none';
+    }
+
+    document.getElementById('apply').onclick = () => { offset = 0; fetchLogs(); };
+    document.getElementById('prev').onclick = () => { offset = Math.max(0, offset - limit); fetchLogs(); };
+    document.getElementById('next').onclick = () => { offset = offset + limit; fetchLogs(); };
+
+    fetchLogs();
+  </script>
+</body>
+</html>

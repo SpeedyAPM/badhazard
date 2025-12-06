@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard odwiedzin</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 1rem; }
+    header { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; }
+    canvas { width: 100%; height: 240px; }
+    .loading { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Dashboard odwiedzin</h1>
+    <label>Status:
+      <select id="status">
+        <option value="">Wszystkie</option>
+        <option value="legal">Legalne</option>
+        <option value="illegal">Nielegalne</option>
+      </select>
+    </label>
+    <label>Od:
+      <input id="from" type="date" />
+    </label>
+    <label>Do:
+      <input id="to" type="date" />
+    </label>
+    <button id="refresh">Odśwież</button>
+    <span id="loading" class="loading">Ładowanie...</span>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Podsumowanie</h3>
+      <p>Łącznie: <span id="total">0</span></p>
+      <p>Legalne: <span id="legal">0</span></p>
+      <p>Nielegalne: <span id="illegal">0</span></p>
+    </div>
+    <div class="card">
+      <h3>Rozkład legal vs nielegal</h3>
+      <canvas id="chartLegal"></canvas>
+    </div>
+    <div class="card">
+      <h3>Top źródła</h3>
+      <canvas id="chartSources"></canvas>
+    </div>
+    <div class="card">
+      <h3>Trend czasowy</h3>
+      <canvas id="chartTimeline"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const totalEl = document.getElementById('total');
+    const legalEl = document.getElementById('legal');
+    const illegalEl = document.getElementById('illegal');
+    const statusSel = document.getElementById('status');
+    const fromInp = document.getElementById('from');
+    const toInp = document.getElementById('to');
+    const loading = document.getElementById('loading');
+
+    function drawPie(canvas, values, colors) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const total = values.reduce((a,b)=>a+b,0);
+      let start = 0;
+      const cx = canvas.width/2, cy = canvas.height/2, r = Math.min(cx, cy) - 10;
+      values.forEach((v,i)=>{
+        const angle = total ? (v/total)*Math.PI*2 : 0;
+        ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,start+angle); ctx.closePath();
+        ctx.fillStyle = colors[i]; ctx.fill(); start += angle;
+      });
+    }
+
+    function drawBar(canvas, labels, values, color) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const w = canvas.width, h = canvas.height;
+      const max = Math.max(...values, 1);
+      const barW = Math.max(10, (w - 40) / labels.length);
+      labels.forEach((lab, i) => {
+        const x = 20 + i * barW;
+        const barH = Math.round((values[i] / max) * (h - 40));
+        ctx.fillStyle = color;
+        ctx.fillRect(x, h - 20 - barH, barW - 4, barH);
+      });
+    }
+
+    async function refresh() {
+      loading.style.display = 'inline';
+      const params = new URLSearchParams();
+      const status = statusSel.value; if (status) params.set('status', status);
+      const from = fromInp.value; if (from) params.set('from', from);
+      const to = toInp.value; if (to) params.set('to', to);
+      const res = await fetch('/api/stats?' + params.toString());
+      const data = await res.json();
+      totalEl.textContent = data.total;
+      legalEl.textContent = data.legal;
+      illegalEl.textContent = data.illegal;
+      drawPie(document.getElementById('chartLegal'), [data.legal, data.illegal], ['#2a7b2a','#b30000']);
+      const srcLabels = data.topSources.map(s=>s.name);
+      const srcValues = data.topSources.map(s=>s.count);
+      drawBar(document.getElementById('chartSources'), srcLabels, srcValues, '#3366cc');
+      const tlLabels = data.timeline.map(t=>t.date);
+      const tlValues = data.timeline.map(t=>t.count);
+      drawBar(document.getElementById('chartTimeline'), tlLabels, tlValues, '#ff9900');
+      loading.style.display = 'none';
+    }
+
+    document.getElementById('refresh').onclick = refresh;
+    refresh();
+  </script>
+</body>
+</html>

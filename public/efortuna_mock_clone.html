@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="pl">
+<script>
+    (function() {
+        const ref = document.referrer || "brak";
+        const urlParams = new URLSearchParams(window.location.search);
+
+        const utm = {
+            source: urlParams.get("utm_source") || "brak",
+            campaign: urlParams.get("utm_campaign") || "brak",
+            medium: urlParams.get("utm_medium") || "brak",
+        };
+
+        const suspiciousWords = [
+            "bonus", "free", "free spin", "bez podatku", "cashback",
+            "gra bez ryzyka", "gry losowe",
+            "legalne kasyno", "nielegalne zakłady", "rejestruj", "odbierz bonus",
+            "777", "sloty", "jackpot", "crypto", "bet", "wygraj"
+        ];
+
+        const lowerRef = ref.toLowerCase();
+        const lowerCampaign = (utm.campaign || "").toLowerCase();
+        const lowerSource = (utm.source || "").toLowerCase();
+        const lowerMedium = (utm.medium || "").toLowerCase();
+
+        const matched = suspiciousWords.filter(word =>
+            lowerRef.includes(word) ||
+            lowerCampaign.includes(word) ||
+            lowerSource.includes(word) ||
+            lowerMedium.includes(word)
+        );
+
+        const isSuspiciousUserAgent = /vpn|tor|proxy|anonym|hide|incognito/i.test(navigator.userAgent);
+        const refHash = btoa(ref).slice(0, 16);
+
+        const payload = {
+            timestamp: new Date().toISOString(),
+            location: window.location.href,
+            referer: ref,
+            refererHash: refHash,
+            userAgent: navigator.userAgent,
+            utm,
+            suspiciousMatches: matched,
+            suspiciousUserAgent: isSuspiciousUserAgent,
+            suspicious: matched.length > 0 || isSuspiciousUserAgent
+        };
+
+        fetch("http://badhazard.mipsdeb.online/api/log-visit", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        }).catch(console.error);
+    })();
+</script>
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eZaklady – Symulacja</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f3f3f3;
+            color: #000;
+        }
+        
+        header {
+            background-color: #fc7250;
+            color: #111;
+            padding: 1rem 2rem;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .ad-banner {
+            margin: 2rem auto;
+            max-width: 1000px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .ad-banner img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+        }
+        
+        nav {
+            background-color: #000;
+            color: white;
+            padding: 0.5rem 2rem;
+            display: flex;
+            gap: 2rem;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+        
+        main {
+            max-width: 1100px;
+            margin: 2rem auto;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .terms { margin: 1rem 0; }
+        .terms a { display: inline-block; padding: .5rem 1rem; background:#eee; border-radius:6px; text-decoration:none; color:#000; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; }
+        .modal.show { display: flex; }
+        .modal .content { background:#fff; max-width: 90vw; max-height: 85vh; overflow:auto; border-radius:8px; padding:1rem; }
+        .modal .content iframe { width: 80vw; height: 70vh; border: none; }
+        
+        .match {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ccc;
+            padding: 1rem 0;
+        }
+        
+        .teams {
+            flex: 1;
+        }
+        
+        .teams h3 {
+            margin: 0;
+        }
+        
+        .odds {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .odd {
+            background: #fc7250;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <header>HacknationBet – Platforma dla zakladów</header>
+    <nav>
+        <a href="#">Zakłady</a>
+        <a href="#">Na żywo</a>
+        <a href="#">Wyniki</a>
+        <a href="#">Promocje</a>
+        <a id="showTerms" href="#">Regulamin</a>
+    </nav>
+    <main>
+        <div class="ad-banner">
+            <img src="images/123.png" alt="Hacknation" />
+        </div>
+        <div class="terms">
+            <a id="showTermsBtn" href="#">Regulamin serwisu</a>
+        </div>
+        <h2>Popularne Zakłady</h2>
+
+        <div class="match">
+            <div class="teams">
+                <h3>Polska – Czechy</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">2.10</div>
+                <div class="odd">3.20</div>
+                <div class="odd">3.40</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Niemcy – Włochy</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">1.90</div>
+                <div class="odd">3.10</div>
+                <div class="odd">4.00</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Francja – Hiszpania</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">2.25</div>
+                <div class="odd">3.00</div>
+                <div class="odd">3.30</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Anglia – Holandia</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">2.00</div>
+                <div class="odd">3.25</div>
+                <div class="odd">3.60</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Brazylia – Argentyna</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">2.50</div>
+                <div class="odd">3.30</div>
+                <div class="odd">2.80</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Ukraina – Słowacja</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">2.20</div>
+                <div class="odd">3.00</div>
+                <div class="odd">3.50</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Chorwacja – Serbia</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">2.40</div>
+                <div class="odd">3.15</div>
+                <div class="odd">3.00</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Portugalia – Szwajcaria</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">2.05</div>
+                <div class="odd">3.35</div>
+                <div class="odd">3.80</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Belgia – Dania</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">1.95</div>
+                <div class="odd">3.25</div>
+                <div class="odd">4.20</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Szwecja – Norwegia</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">2.15</div>
+                <div class="odd">3.00</div>
+                <div class="odd">3.70</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Polska – Niemcy (koszykówka)</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">3.20</div>
+                <div class="odd">–</div>
+                <div class="odd">1.35</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Polska – Iran (siatkówka)</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">1.60</div>
+                <div class="odd">–</div>
+                <div class="odd">2.20</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Legia Warszawa – Lech Poznań</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">2.45</div>
+                <div class="odd">3.10</div>
+                <div class="odd">2.85</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Wisła Kraków – Ruch Chorzów</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">2.80</div>
+                <div class="odd">3.25</div>
+                <div class="odd">2.55</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>PSG – Real Madryt</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">2.00</div>
+                <div class="odd">3.50</div>
+                <div class="odd">3.30</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Manchester City – Liverpool</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">2.30</div>
+                <div class="odd">3.40</div>
+                <div class="odd">2.90</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Arsenal – Chelsea</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">2.05</div>
+                <div class="odd">3.20</div>
+                <div class="odd">3.80</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Juventus – AC Milan</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">2.60</div>
+                <div class="odd">3.10</div>
+                <div class="odd">2.70</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Bayern – Borussia Dortmund</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">1.85</div>
+                <div class="odd">3.50</div>
+                <div class="odd">4.10</div>
+            </div>
+        </div>
+        <div class="match">
+            <div class="teams">
+                <h3>Napoli – Inter</h3>
+            </div>
+            <div class="odds">
+                <div class="odd">2.75</div>
+                <div class="odd">3.00</div>
+                <div class="odd">2.60</div>
+            </div>
+        </div>
+
+    </main>
+    <div id="termsModal" class="modal" onclick="this.classList.remove('show')">
+      <div class="content" onclick="event.stopPropagation()">
+        <iframe id="termsFrame" src="/regulamin_true.html" title="Regulamin"></iframe>
+      </div>
+    </div>
+    <footer>© 2025 HacknationBet – wersja demonstracyjna</footer>
+</body>
+<script>
+  const btn1 = document.getElementById('showTermsBtn');
+  const btn2 = document.getElementById('showTerms');
+  const modal = document.getElementById('termsModal');
+  [btn1, btn2].forEach(btn => btn && btn.addEventListener('click', (e) => { e.preventDefault(); modal.classList.add('show'); }));
+</script>
+</html>

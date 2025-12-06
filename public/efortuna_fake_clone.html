@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>eZaklady – Kopia Fałszywa</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #fafafa;
+      color: #000;
+    }
+    header {
+      background-color: #ffbb00;
+      color: #000;
+      padding: 1rem 2rem;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    nav {
+      background-color: #111;
+      color: white;
+      padding: 0.5rem 2rem;
+      display: flex;
+      gap: 2rem;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    main {
+      max-width: 1100px;
+      margin: 2rem auto;
+      background-color: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+    .match {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ddd;
+      padding: 1rem 0;
+    }
+    .teams {
+      flex: 1;
+    }
+    .teams h3 {
+      margin: 0;
+    }
+    .odds {
+      display: flex;
+      gap: 1rem;
+    }
+    .terms { margin: 1rem 0; }
+    .terms a { display:inline-block; padding:.5rem 1rem; background:#eee; border-radius:6px; text-decoration:none; color:#000; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; }
+    .modal.show { display: flex; }
+    .modal .content { background:#fff; max-width: 90vw; max-height: 85vh; overflow:auto; border-radius:8px; padding:1rem; }
+    .modal .content iframe { width: 80vw; height: 70vh; border: none; }
+    .odd {
+      background: #ffbb00;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    footer {
+      text-align: center;
+      margin-top: 4rem;
+      font-size: 0.9rem;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <header>eZaklady – Kopia Fałszywa</header>
+  <nav>
+    <a href="#">Zakłady</a>
+    <a href="#">Live+</a>
+    <a href="#">Ekspres</a>
+    <a href="#">Bonusy</a>
+    <a id="showTerms" href="#">Regulamin</a>
+  </nav>
+  <main>
+    <h2>Zawyżone Kursy</h2>
+    <div class="terms">
+      <a id="showTermsBtn" href="#">Regulamin</a>
+    </div>
+    
+    <div class="match"><div class="teams"><h3>Polska – Czechy</h3></div><div class="odds"><div class="odd">2.80</div><div class="odd">3.90</div><div class="odd">4.50</div></div></div>
+    <div class="match"><div class="teams"><h3>Niemcy – Włochy</h3></div><div class="odds"><div class="odd">2.60</div><div class="odd">3.60</div><div class="odd">5.20</div></div></div>
+    <div class="match"><div class="teams"><h3>Francja – Hiszpania</h3></div><div class="odds"><div class="odd">2.95</div><div class="odd">3.70</div><div class="odd">4.10</div></div></div>
+    <div class="match"><div class="teams"><h3>Anglia – Holandia</h3></div><div class="odds"><div class="odd">2.85</div><div class="odd">3.65</div><div class="odd">4.30</div></div></div>
+    <div class="match"><div class="teams"><h3>Brazylia – Argentyna</h3></div><div class="odds"><div class="odd">3.10</div><div class="odd">3.90</div><div class="odd">3.70</div></div></div>
+    <div class="match"><div class="teams"><h3>Ukraina – Słowacja</h3></div><div class="odds"><div class="odd">2.90</div><div class="odd">3.60</div><div class="odd">4.30</div></div></div>
+    <div class="match"><div class="teams"><h3>Chorwacja – Serbia</h3></div><div class="odds"><div class="odd">3.00</div><div class="odd">3.75</div><div class="odd">4.10</div></div></div>
+    <div class="match"><div class="teams"><h3>Portugalia – Szwajcaria</h3></div><div class="odds"><div class="odd">2.80</div><div class="odd">3.90</div><div class="odd">4.50</div></div></div>
+    <div class="match"><div class="teams"><h3>Belgia – Dania</h3></div><div class="odds"><div class="odd">2.70</div><div class="odd">3.80</div><div class="odd">4.70</div></div></div>
+    <div class="match"><div class="teams"><h3>Szwecja – Norwegia</h3></div><div class="odds"><div class="odd">2.95</div><div class="odd">3.60</div><div class="odd">4.40</div></div></div>
+
+  </main>
+  <div id="termsModal" class="modal" onclick="this.classList.remove('show')">
+    <div class="content" onclick="event.stopPropagation()">
+      <iframe id="termsFrame" src="/regulamin_false.html" title="Regulamin"></iframe>
+    </div>
+  </div>
+  <footer>© 2025 eZaklady – kopia demonstracyjna</footer>
+</body>
+<script>
+  const btn1 = document.getElementById('showTermsBtn');
+  const btn2 = document.getElementById('showTerms');
+  const modal = document.getElementById('termsModal');
+  [btn1, btn2].forEach(btn => btn && btn.addEventListener('click', (e) => { e.preventDefault(); modal.classList.add('show'); }));
+</script>
+</html>

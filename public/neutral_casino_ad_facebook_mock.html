@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fakebook – Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+        }
+        
+        header {
+            background-color: #1877f2;
+            color: white;
+            padding: 1rem 2rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .content {
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .feed {
+            background-color: white;
+            width: 600px;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .post {
+            margin-bottom: 1.5rem;
+        }
+        
+        .ad {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background-color: #fff8dc;
+        }
+        
+        .ad h4 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <header>Fakebook</header>
+    <div class="content">
+        <div class="feed">
+            <div class="post">
+                <p><strong>Anna Kowalska</strong> udostępniła nowe zdjęcie z wakacji!</p>
+                <img src="images/Woman.jpg" alt="Vacation photo" style="width:100%; border-radius: 4px;">
+            </div>
+            <div class="post">
+                <p><strong>Jan Nowak</strong> komentuje: "Nowy sezon siatkówki czas zacząć!"</p>
+            </div>
+
+            <div id="casinoAd" class="ad">
+                <h4>HacknationBet – Zakłady sportowe i kasyno online</h4>
+                <img src="images/456.png" alt="HacknationBet" style="width:100%; border-radius: 4px;">
+                <p>Sprawdź licencjonowaną platformę do zakładów sportowych i gier kasynowych. Transparentne warunki, weryfikacja KYC i pełna zgodność z regulaminem.</p>
+                <a href="efortuna_mock_clone.html?utm_source=fakebook&utm_campaign=fakebook_0001&utm_medium=seo">Dowiedz się więcej</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        setTimeout(() => {
+            document.getElementById("casinoAd").style.display = "block";
+        }, 5000);
+    </script>
+</body>
+
+</html>
