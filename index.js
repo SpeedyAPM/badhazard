@@ -44,6 +44,76 @@ app.post("/api/log-visit", async (req, res) => {
     console.log("📝 Новое посещение:");
     console.log(JSON.stringify(data, null, 2));
 
+    const ref = data.referer || "";
+    const lowerRef = ref.toLowerCase();
+    const suspiciousWords = [
+        "bonus", "bez podatku", "gra bez ryzyka", "free spin", "kasyno", "hazard"
+    ];
+    const matched = suspiciousWords.filter(word => lowerRef.includes(word));
+
+    const hasSuspiciousFlag = data && data.suspicious === true;
+    const hasSuspiciousMatches = Array.isArray(data && data.suspiciousMatches) && data.suspiciousMatches.length > 0;
+    const shouldScreenshot = hasSuspiciousFlag || hasSuspiciousMatches || matched.length > 0;
+
+    if (shouldScreenshot) {
+        try {
+            const candidates = ["/usr/bin/chromium","/usr/bin/chromium-browser","/snap/bin/chromium","/usr/bin/google-chrome","/usr/bin/google-chrome-stable"];
+            let executablePath = null; for (const p of candidates) { try { if (fs.existsSync(p)) { executablePath = p; break; } } catch(_){} }
+            let browser;
+            try {
+              const launchOpts = { headless: "new", args: ["--no-sandbox", "--disable-setuid-sandbox"] };
+              if (executablePath) launchOpts.executablePath = executablePath; else launchOpts.channel = 'chrome';
+              browser = await puppeteer.launch(launchOpts);
+            } catch (e1) {
+              browser = await puppeteer.launch({ headless: "new", args: ["--no-sandbox", "--disable-setuid-sandbox"] });
+            }
+            const page = await browser.newPage();
+            try {
+                await page.setRequestInterception(true);
+                page.on('request', (rq) => {
+                    const url = rq.url();
+                    if (url.includes('/api/log-visit')) {
+                        try { rq.abort(); } catch(_) {}
+                    } else {
+                        try { rq.continue(); } catch(_) {}
+                    }
+                });
+            } catch(_) {}
+            const target = (data.location && String(data.location).trim()) ? data.location : ((ref && ref !== "brak") ? ref : "");
+            if (!target) throw new Error("no target for screenshot");
+            let targetResolved = target;
+            try {
+                const u0 = new URL(target);
+                if (u0.hostname === 'badhazard.mipsdeb.online') {
+                    u0.protocol = 'http:';
+                    u0.hostname = 'localhost';
+                    u0.port = String(PORT);
+                }
+                targetResolved = u0.toString();
+            } catch(_) {}
+            let targetNoLog = targetResolved;
+            try {
+                const u = new URL(targetResolved);
+                u.searchParams.set("bh_nolog", "1");
+                targetNoLog = u.toString();
+            } catch (_) {
+                const joiner = targetResolved.includes("?") ? "&" : "?";
+                targetNoLog = `${targetResolved}${joiner}bh_nolog=1`;
+            }
+            await page.goto(targetNoLog, { timeout: 20000, waitUntil: "domcontentloaded" });
+            const tsMs = (function(){ const t = Date.parse(data.timestamp); return isNaN(t) ? Date.now() : t; })();
+            const filename = `screenshot_${tsMs}.png`;
+            const outDir = path.join(__dirname, "screenshots");
+            fs.mkdirSync(outDir, { recursive: true });
+            await page.screenshot({ path: path.join(outDir, filename), fullPage: true });
+            await browser.close();
+            data.screenshotFilename = filename;
+            console.log(`📸 Скриншот сохранен: ${filename}`);
+        } catch (err) {
+            console.error("⚠️ Ошибка скриншота:", err.message);
+        }
+    }
+
     if (SAVE_TO === "mongo") {
         try {
             await new Visit(data).save();
@@ -54,29 +124,6 @@ app.post("/api/log-visit", async (req, res) => {
     } else {
         fs.appendFileSync("visits.log", JSON.stringify(data) + "\n");
         console.log("💾 Сохранено w visits.log");
-    }
-
-    const ref = data.referer || "";
-    const lowerRef = ref.toLowerCase();
-    const suspiciousWords = [
-        "bonus", "bez podatku", "gra bez ryzyka", "free spin", "kasyno", "hazard"
-    ];
-    const matched = suspiciousWords.filter(word => lowerRef.includes(word));
-
-    if (ref !== "brak" && matched.length > 0) {
-        try {
-            const browser = await puppeteer.launch({ headless: "new", args: ["--no-sandbox", "--disable-setuid-sandbox"] });
-            const page = await browser.newPage();
-            await page.goto(ref, { timeout: 15000, waitUntil: "domcontentloaded" });
-            const timestamp = Date.now();
-            const filename = `screenshot_${timestamp}.png`;
-            const screenshotPath = path.join(__dirname, "screenshots", filename);
-            await page.screenshot({ path: screenshotPath, fullPage: true });
-            await browser.close();
-            console.log(`📸 Скриншот сохранен: ${filename}`);
-        } catch (err) {
-            console.error("⚠️ Ошибка скриншота:", err.message);
-        }
     }
 
     res.sendStatus(204);
