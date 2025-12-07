@@ -31,8 +31,16 @@ pm2 status
 
 ## Bezpieczeństwo
 - Firewall: przepuść ruch do portu serwisu lub reverse proxy
-- SSL/HTTPS: Nginx/Caddy jako reverse proxy; certyfikaty Let’s Encrypt
-- CORS: włącz gdy snippet jest na innej domenie (`app.use(cors())`)
+- SSL/HTTPS: reverse proxy z certyfikatami TLS
+- CORS: domyślnie włącz dla scenariusza cross-origin (snippet na innej domenie):
+```js
+const cors = require('cors');
+app.use(cors({
+  origin: [/^https?:\/\/.+/],
+  methods: ['POST','GET','OPTIONS'],
+  allowedHeaders: ['Content-Type']
+}));
+```
 
 ## Monitoring i logi
 - Logi wizyt: `intergracja/server/visits.log` (JSONL)
@@ -46,6 +54,7 @@ pm2 status
   - Dla `suspicious === true` serwer wykona zrzut i doda `screenshotFilename`
 - `GET /api/logs`
   - Zwraca: `{ items: [...], total: n }`
+ - Obsługa preflight (OPTIONS) dla CORS: zapewnij odpowiednie nagłówki i metody
 - `/screenshots/*`
   - Serwuje pliki PNG zrzutów
 
