@@ -1,163 +1,53 @@
-System Identyfikacji Graczy i Monitoringu Aktywności (SIGMA)
-Państwowy System Nadzoru nad Hazardem Online
-
-🎯 Cel systemu
-Zapewnienie legalności, przejrzystości i bezpieczeństwa rynku zakładów i kasyn online w Polsce poprzez scentralizowaną kontrolę graczy, operatorów oraz źródeł ruchu internetowego.
-
-🧩 Moduły systemu SIGMA
-
-1. 🧑‍💼 Moduł Graczy
-Opis: Centralny rejestr graczy hazardowych wraz z pełną historią działań i oceną ryzyka.
-Funkcjonalności:
-Integracja z PESEL / e-Dowód
-
-
-Historia depozytów, wypłat, zakładów
-
-
-Analiza zachowań gracza (uzależnienia, wysokie ryzyko)
-
-
-Kategoryzacja RG (Responsible Gambling): alerty, limity, samowykluczenia
-
-
-Weryfikacja tożsamości (KYC)
-
-
-Integracja z systemem skarg
-
-
-Automatyczne oznaczanie podejrzanych graczy
-
-
-
-2. 🏦 Moduł Operatorów (Kasyna / Bukmacherzy)
-Opis: Nadzór nad działalnością licencjonowanych firm B2C i B2B
-Funkcjonalności:
-Monitorowanie GGR, NGR, RTP, liczby aktywnych graczy
-
-
-Analiza stawek i współczynników
-
-
-Integracja z systemem podatkowym
-
-
-Weryfikacja statusu licencji i certyfikatów (GLI, iTechLabs itd.)
-
-
-Sprawdzenie systemów płatniczych i kierunku wypłat
-
-
-Wykrywanie anomalii (np. zmiany w HTML, bug-stawki, fałszywe kursy)
-
-
-
-3. 🔐 Moduł Bezpieczeństwa
-Opis: Zapewnienie cyfrowego bezpieczeństwa użytkowników oraz ochrony danych.
-Funkcjonalności:
-Centralna weryfikacja KYC / AML
-
-
-Lista zbanowanych i niepożądanych graczy
-
-
-Identyfikacja urządzeń, IP, VPN, TOR
-
-
-Ochrona DDoS (dla zatwierdzonych operatorów)
-
-
-
-4. 📜 Moduł Regulacyjny
-Opis: Automatyczne sprawdzanie zgodności z polskim prawem hazardowym.
-Funkcjonalności:
-Weryfikacja dokumentacji licencyjnej i regulaminów
-
-
-Audyty RTP dla gier
-
-
-Sprawdzanie regulaminów i dokumentów za pomocą AI/NLP
-
-
-Analiza zgodności z lokalnym językiem i przepisami
-
-
-
-5. 🌍 Moduł Ruchu Sieciowego (Traffic)
-Opis: Wykrywanie nielegalnych źródeł ruchu i reklam.
-Funkcjonalności:
-Odczyt źródła odwiedzin (referer, utm_source, utm_campaign)
-
-
-Analiza linków pod kątem słów kluczowych:
-
-
-bonus, bez podatku, gra bez ryzyka, free spin, kasyno, hazard
-
-
-Wykrywanie podejrzanych agentów przeglądarki (User-Agent)
-
-
-Wykonywanie zrzutów ekranu strony źródłowej (Puppeteer)
-
-
-Automatyczne tworzenie raportów / skarg (PDF / JSON)
-
-
-Lista domen wewnętrznych i zagranicznych, przez które użytkownicy wchodzą na stronę
-
-
-Zgłoszenia do UKNF / UOKiK
-
-
-
-6. 🔍 Moduł Wyszukiwania Kasyn Nielegalnych
-Opis: Automatyczne wykrywanie nielegalnych kasyn, ich kopii i alternatywnych domen.
-Funkcjonalności:
-Crawler do skanowania domen globalnych (.com, .net)
-
-
-Identyfikacja stron z niedozwolonymi słowami i ofertami
-
-
-Wykrywanie mirrorów / alternatywnych adresów URL
-
-
-Automatyczne blokowanie (DNS/Cloudflare)
-
-
-Tworzenie listy domen do zgłoszenia / ukarania
-
-
-Interfejs API do generowania formalnych zgłoszeń
-
-
-
-⚙️ Technologie Wykorzystane (Tech Stack)
-Komponent
-Technologia
-Backend
-Node.js (Express)
-Baza danych
-MongoDB / PostgreSQL
-Analiza stron
-Puppeteer
-Parsery i crawler
-Cheerio, Axios
-Monitorowanie
-Grafana + Prometheus
-Frontend
-Flutter
-Przechowywanie zrzutów
-AWS S3 / lokalnie
-
-
-
-
-
-
-
-
+# badhazard — system wykrywania nielegalnych reklam hazardowych
+
+## Opis projektu
+- Problem: identyfikacja i archiwizacja przypadków kierowania ruchu do treści hazardowych, w tym nielegalnych reklam i stron „klonów”.
+- Rozwiązanie: lekki serwer Node.js zbiera dane wizyt przez osadzalny snippet, analizuje parametry UTM i referer, wykrywa podejrzane słowa kluczowe oraz generuje zrzuty ekranu strony źródłowej (Puppeteer). Wyniki zapisuje w formacie JSONL i serwuje podgląd wraz ze zrzutami.
+- Efekt: szybki wgląd w dowody (URL + screenshot), możliwość filtrowania logów oraz eksportu.
+
+## Założenia projektu
+- Przechowywanie logów jako JSON Lines w `visits.log`.
+- Zrzuty ekranu zapisywane lokalnie w `screenshots/` i dostępne pod `/screenshots/*`.
+- Wykonanie zrzutu dla wpisów oznaczonych jako podejrzane (`suspicious: true`) lub z dopasowaniami słów kluczowych.
+- Anty-duplikacja: podczas generowania zrzutu serwer dodaje parametr `bh_nolog=1`, a snippet ignoruje go i nie raportuje ponownie.
+- Wsparcie dla scenariusza „referer: brak” — źródłem zrzutu jest wtedy `location`.
+
+## Instalacja i uruchomienie
+- Wymagania: `Node.js 18+`, przeglądarka Chromium/Chrome, Linux.
+- Instalacja zależności w katalogu głównym:
+```
+cd /var/www/badhazard
+npm i
+```
+- Uruchomienie serwera:
+```
+node index.js
+# Serwer: http://localhost:3000
+```
+- Zależności kluczowe: `express`, `cors`, `body-parser`, `puppeteer`, `mongoose` (opcjonalnie).
+
+## Przykłady wyników
+- Log JSONL: `var/www/badhazard/visits.log` — każdy wiersz to jeden wpis, np.
+```
+{"timestamp":"2025-12-07T08:29:45.123Z","location":"https://badhazard.mipsdeb.online/efortuna_fake_clone.html","referer":"https://badhazard.mipsdeb.online/","utm":{"source":"brak","campaign":"brak","medium":"brak"},"suspicious":true,"screenshotFilename":"/screenshots/screenshot_1765052109315_http_127_0_0_1_3000_fake_ad_landing_html.png"}
+```
+- Podgląd w przeglądarce: `public/logs.html` korzysta z `GET /api/logs` i pokazuje kolumny czas/URL/status/źródło/zrzut.
+
+## Wydzielona integracja (`intergracja/`)
+- `intergracja/snippet/tracker.js`: osadzalny fragment JS do wklejenia na stronę. Zbiera `timestamp`, `location`, `referer`, `utm`, wykrywa słowa kluczowe (np. „bonus”, „free spin”), oznacza `suspicious` i wysyła `POST /api/log-visit`. Ignoruje `bh_nolog=1`.
+- `intergracja/server/index.js`: minimalny serwer Express z analogicznym końcem `POST /api/log-visit` oraz serwowaniem `/screenshots`. Dla `suspicious === true` wykonuje zrzut ekranu i dopisuje `screenshotFilename`. Ma prosty `GET /api/logs` do wglądu.
+- `intergracja/server/README.md`: opis wymagań, instalacji, API i anty-duplikacji.
+
+## Architektura i API
+- Endpointy w głównym serwerze:
+  - `POST /api/log-visit` — zapis JSONL i (dla podejrzanych) zrzut ekranu. Implementacja: `index.js:42`.
+  - `GET /api/logs` — odczyt znormalizowanych wpisów z `visits.log` z przypięciem zrzutów, filtrowaniem i paginacją. Implementacja: `index.js:140`, logika pomocnicza `lib/logReader.js`.
+  - `GET /api/stats` — proste statystyki i top źródła. Implementacja: `index.js:153`, `lib/logReader.js`.
+  - `/screenshots/*` — serwowanie zrzutów PNG.
+- Generowanie zrzutu: Puppeteer otwiera stronę (referer lub `location`) z parametrem `bh_nolog=1` i pełnym zrzutem. Implementacja: `index.js:58-114`.
+
+## Dodatkowe informacje
+- Zgodność z `referer: brak`: gdy `referer` jest pusty lub `brak`, kod użyje `location` do zrzutu.
+- Rozpoznawanie lokalnej domeny: adres `badhazard.mipsdeb.online` może być odwiedzany wewnętrznie po translacji na `http://localhost:3000`.
+- Eksport pełnych logów: `GET /export` — zwraca całą zawartość `visits.log` w JSON.
 
