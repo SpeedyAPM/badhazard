@@ -39,21 +39,10 @@ app.use(bodyParser.json());
 
 
 // === Логика приема данных ===
-app.post("/api/log-visit", async(req, res) => {
+app.post("/api/log-visit", async (req, res) => {
     const data = req.body;
-
     console.log("📝 Новое посещение:");
     console.log(JSON.stringify(data, null, 2));
-
-    try {
-        const xff = req.headers["x-forwarded-for"]; 
-        const first = Array.isArray(xff) ? xff[0] : (xff || "");
-        const ip = (first.split(",")[0] || "").trim() || (req.socket && req.socket.remoteAddress) || req.ip || "";
-        fs.appendFileSync("visitsip.txt", JSON.stringify({ timestamp: new Date().toISOString(), ip }) + "\n");
-        console.log(`🧭 IP zapisany: ${ip}`);
-    } catch (err) {
-        console.error("❌ Błąd zapisu visitsip.txt:", err);
-    }
 
     if (SAVE_TO === "mongo") {
         try {
@@ -62,69 +51,31 @@ app.post("/api/log-visit", async(req, res) => {
         } catch (err) {
             console.error("❌ Ошибка сохранения:", err);
         }
+    } else {
+        fs.appendFileSync("visits.log", JSON.stringify(data) + "\n");
+        console.log("💾 Сохранено w visits.log");
     }
 
-    // === Дополнительно: делаем скриншот только для нелегальных (suspicious === true) ===
     const ref = data.referer || "";
+    const lowerRef = ref.toLowerCase();
+    const suspiciousWords = [
+        "bonus", "bez podatku", "gra bez ryzyka", "free spin", "kasyno", "hazard"
+    ];
+    const matched = suspiciousWords.filter(word => lowerRef.includes(word));
 
-    if (data.suspicious === true) {
+    if (ref !== "brak" && matched.length > 0) {
         try {
-            const findChromiumPath = () => {
-                const candidates = [
-                    "/usr/bin/chromium",
-                    "/usr/bin/chromium-browser",
-                    "/snap/bin/chromium",
-                    "/usr/bin/google-chrome",
-                    "/usr/bin/google-chrome-stable"
-                ];
-                for (const p of candidates) { try { if (fs.existsSync(p)) return p; } catch(_) {} }
-                return null;
-            };
-            const exe = findChromiumPath();
-            const launchOpts = { headless: "new", args: ["--no-sandbox", "--disable-setuid-sandbox"] };
-            if (exe) launchOpts.executablePath = exe; else launchOpts.browser = "chrome";
-            const browser = await puppeteer.launch(launchOpts);
+            const browser = await puppeteer.launch({ headless: "new", args: ["--no-sandbox", "--disable-setuid-sandbox"] });
             const page = await browser.newPage();
-            let targetUrl = ref !== "brak" ? ref : (data.location || "");
-            try {
-                const u = new URL(targetUrl);
-                if (u.hostname === "badhazard.mipsdeb.online") {
-                    targetUrl = `http://127.0.0.1:3000${u.pathname}${u.search}`;
-                }
-            } catch (_) {}
-            if (!targetUrl) {
-                throw new Error("no target url to screenshot");
-            }
-            console.log(`🎯 Screenshot target: ${targetUrl}`);
-            await page.goto(targetUrl, { timeout: 20000, waitUntil: "domcontentloaded" });
-
-            let timestamp = Date.now();
-            if (typeof data.timestamp === "string") {
-                const t = Date.parse(data.timestamp);
-                if (!isNaN(t)) timestamp = t;
-            }
-            const safeRef = targetUrl.replace(/[^a-z0-9]+/gi, "_").slice(0,60);
-            const filename = `screenshot_${timestamp}_${safeRef}.png`;
+            await page.goto(ref, { timeout: 15000, waitUntil: "domcontentloaded" });
+            const timestamp = Date.now();
+            const filename = `screenshot_${timestamp}.png`;
             const screenshotPath = path.join(__dirname, "screenshots", filename);
-            fs.mkdirSync(path.join(__dirname, "screenshots"), { recursive: true });
-
             await page.screenshot({ path: screenshotPath, fullPage: true });
             await browser.close();
-
             console.log(`📸 Скриншот сохранен: ${filename}`);
-            data.screenshotFilename = `http://badhazard.mipsdeb.online/screenshots/${filename}`;
         } catch (err) {
-            console.error("⚠️ Ошибка skrinshota:", err && err.stack ? err.stack : err);
-            console.error("⚠️ Target URL:", ref !== "brak" ? ref : (data.location || ""));
-        }
-    }
-
-    if (SAVE_TO === "file") {
-        try {
-            fs.appendFileSync("visits.log", JSON.stringify(data) + "\n");
-            console.log("💾 Сохранено w visits.log");
-        } catch (err) {
-            console.error("❌ Błąd zapisu logu:", err);
+            console.error("⚠️ Ошибка скриншота:", err.message);
         }
     }
 

@@ -25,9 +25,29 @@ app.post('/api/log-visit', async (req, res) => {
       if (executablePath) launchOpts.executablePath = executablePath; else launchOpts.browser = 'chrome';
       const browser = await puppeteer.launch(launchOpts);
       const page = await browser.newPage();
+      try {
+        await page.setRequestInterception(true);
+        page.on('request', (rq) => {
+          const url = rq.url();
+          if (url.includes('/api/log-visit')) {
+            try { rq.abort(); } catch(_) {}
+          } else {
+            try { rq.continue(); } catch(_) {}
+          }
+        });
+      } catch(_) {}
       const target = data.referer && data.referer !== 'brak' ? data.referer : (data.location || '');
+      let targetNoLog = target;
+      try {
+        const u = new URL(target);
+        u.searchParams.set('bh_nolog','1');
+        targetNoLog = u.toString();
+      } catch(_) {
+        const joiner = target.includes('?') ? '&' : '?';
+        targetNoLog = `${target}${joiner}bh_nolog=1`;
+      }
       if (!target) throw new Error('no target');
-      await page.goto(target, { timeout: 20000, waitUntil: 'domcontentloaded' });
+      await page.goto(targetNoLog, { timeout: 20000, waitUntil: 'domcontentloaded' });
       const timestamp = Date.parse(data.timestamp || Date.now()) || Date.now();
       const safeRef = target.replace(/[^a-z0-9]+/gi, "_").slice(0,60);
       const filename = `screenshot_${timestamp}_${safeRef}.png`;
@@ -52,4 +72,3 @@ app.get('/api/logs', async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`integracja server on http://localhost:${PORT}`));
-

@@ -3,6 +3,7 @@
   var endpoint=cfg.endpoint||"/api/log-visit";
   var src=new URL(w.location.href);
   var searchParams=new URLSearchParams(src.search);
+  if (searchParams.get("bh_nolog")==="1") { return; }
   var utm={source:searchParams.get("utm_source")||"brak",campaign:searchParams.get("utm_campaign")||"brak",medium:searchParams.get("utm_medium")||"brak"};
   var suspiciousWords=["bonus","free","free spin","bez podatku","cashback","gra bez ryzyka","gry losowe","legalne kasyno","nielegalne zakłady","rejestruj","odbierz bonus","777","sloty","jackpot","crypto","bet","wygraj"];
   var ref=d.referrer||"brak";
@@ -15,4 +16,3 @@
   try{var u=new URL(endpoint,w.location.origin);endpoint=u.toString()}catch(e){}
   try{fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}).catch(function(){})}catch(e){}
 })(window,document);
-

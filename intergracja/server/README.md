@@ -52,6 +52,7 @@ app.use(cors({
   - Body: `{ timestamp, location, referer, refererHash, userAgent, utm, suspiciousMatches, suspiciousUserAgent, suspicious }`
   - Odpowiedź: `204 No Content`
   - Dla `suspicious === true` serwer wykona zrzut i doda `screenshotFilename`
+- Anty-duplikacja: serwer podczas wykonywania zrzutu przechodzi na stronę z parametrem `bh_nolog=1`, a snippet ignoruje ten parametr i nie loguje wejścia. Dzięki temu unikamy podwójnego zapisu jednej wizyty.
 - `GET /api/logs`
   - Zwraca: `{ items: [...], total: n }`
  - Obsługa preflight (OPTIONS) dla CORS: zapewnij odpowiednie nagłówki i metody
@@ -63,6 +64,7 @@ app.use(cors({
 - Błąd sandbox: uruchom Puppeteer z `--no-sandbox` i `--disable-setuid-sandbox`
 - CORS blokuje żądania: włącz `cors()` i ustaw poprawne nagłówki
 - Certyfikaty: użyj reverse proxy i terminuj TLS na froncie
+- Duplikaty wpisów w `visits.log`: upewnij się, że snippet ma warunek ignorujący `bh_nolog=1`, a serwer dodaje ten parametr do adresu odwiedzanej strony przy generowaniu zrzutu.
 
 ## Pliki referencyjne
 - Kod serwera: `intergracja/server/index.js`

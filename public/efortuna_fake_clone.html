@@ -107,4 +107,19 @@
   <footer>© 2025 eZaklady – kopia demonstracyjna</footer>
 </body>
 <script></script>
+<script>
+  (function(){
+    try { var url = new URL(window.location.href); if (url.searchParams.get('bh_nolog') === '1') return; } catch(_) {}
+    var payload = {
+      timestamp: new Date().toISOString(),
+      location: window.location.href,
+      referer: document.referrer || 'brak',
+      userAgent: navigator.userAgent || '',
+      utm: (function(){ try { var u = new URL(window.location.href); var s = u.searchParams; return { source: s.get('utm_source')||'brak', campaign: s.get('utm_campaign')||'brak', medium: s.get('utm_medium')||'brak' }; } catch(_) { return { source:'brak', campaign:'brak', medium:'brak' }; } })(),
+      suspiciousMatches: (function(){ var words = ['bonus','free','free spin','bez podatku','cashback','gra bez ryzyka','gry losowe','legalne kasyno','nielegalne zakłady','rejestruj','odbierz bonus','777','sloty','jackpot','crypto','bet','wygraj']; var ref=(document.referrer||'').toLowerCase(); var u = (function(){ try{var x=new URL(window.location.href); return { s:(x.searchParams.get('utm_source')||'').toLowerCase(), c:(x.searchParams.get('utm_campaign')||'').toLowerCase(), m:(x.searchParams.get('utm_medium')||'').toLowerCase() }; }catch(_){ return {s:'',c:'',m:''}; } })(); return words.filter(function(w){ return ref.indexOf(w)>-1 || u.s.indexOf(w)>-1 || u.c.indexOf(w)>-1 || u.m.indexOf(w)>-1; }); })(),
+      suspicious: true
+    };
+    try { fetch('/api/log-visit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }); } catch(_) {}
+  })();
+</script>
 </html>

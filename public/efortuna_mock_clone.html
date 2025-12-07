@@ -2,6 +2,10 @@
 <html lang="pl">
 <script>
     (function() {
+        try {
+            var _u = new URL(window.location.href);
+            if (_u.searchParams.get('bh_nolog') === '1') { return; }
+        } catch(_) {}
         const ref = document.referrer || "brak";
         const urlParams = new URLSearchParams(window.location.search);
 
@@ -379,5 +383,4 @@
     
     <footer>© 2025 HacknationBet – wersja demonstracyjna</footer>
 </body>
-<script></script>
 </html>
